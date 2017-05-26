@@ -1,0 +1,20 @@
+{
+  "name": "kmeas-main-color",
+  "description": "",
+  "main": "app/index.html",
+  "authors": [
+    "MidLinn <midlinn@163.com>"
+  ],
+  "homepage": "",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "app/bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "bootstrap": "^3.3.7"
+  }
+}
