@@ -46,13 +46,14 @@ function main() {
 
                 i_MainImage.src = c_tCanvas.toDataURL();
 
-                doKMeans(id_image, i_tImage.width, i_tImage.height, 5);
+                doKMeans(id_image, i_tImage.width, i_tImage.height, 8, 20);
 
             }, false);
         };
         
     }, false);
 }
+
 /*
 * 获取ImageData坐标x, y处的颜色值
 * @param {ImageData} imageData
@@ -110,10 +111,50 @@ function findCloseColor(colorItem, colorArray) {
     return index;
 }
 
-function doKMeans(imageData, width, height, K) {
+/*
+* 克隆一个对象
+* @param obj 要克隆的对象
+* @return 返回新对象
+*/
+function clone(obj) {
+    if( typeof obj !== "object" || obj === null || obj === undefined ) return obj;
+
+    if( obj instanceof Array ) {
+        var arr = new Array();
+        obj.forEach(function (item) {
+            arr.push( clone(item) );
+        });
+
+        return arr;
+    }
+
+    var dest = new Object();
+    Object.keys(obj).forEach(function(key) {
+        dest[key] = clone( obj[key] );
+    });
+    return dest;
+}
+
+/*
+* 比较两色差异
+* @param color1 
+* @param color2 
+* @return 两色差异值
+*/
+function colorDiff(color1, color2) {
+    var s = 0;
+
+    s += Math.abs( color1.r - color2.r );
+    s += Math.abs( color1.g - color2.g );
+    s += Math.abs( color1.b - color2.b );
+
+    return s;
+}
+
+function doKMeans(imageData, width, height, K, maxTimes) {
     console.log(imageData.data.length);
     
-    var maxTimes = 10;
+    // var maxTimes = 10;
     var i, j ,
         a_color = new Array(),
         a_markColor = new Array();
@@ -132,23 +173,24 @@ function doKMeans(imageData, width, height, K) {
 
     for(i = 1; i <= K; i++) {
         //从图片中随机选择标志颜色
-        var rr = Math.random();
-        var ri = parseInt(rr * a_color.length);
-        a_markColor.push( a_color[ri].color );
+        // var rr = Math.random();
+        // var ri = parseInt(rr * a_color.length);
+        // a_markColor.push( a_color[ri].color );
 
         //随机生成标志颜色
-        // a_markColor.push( {
-        //     r : parseInt( Math.random() * 255 ) ,
-        //     g : parseInt( Math.random() * 255 ) ,
-        //     b : parseInt( Math.random() * 255 )
-        // } );
+        a_markColor.push( {
+            r : parseInt( Math.random() * 255 ) ,
+            g : parseInt( Math.random() * 255 ) ,
+            b : parseInt( Math.random() * 255 )
+        } );
     }
 
     console.log(a_markColor);
     console.log(findCloseColor(a_color[0], a_markColor));
 
     var final = null ,
-        finalColorString = "";
+        finalColorString = "" ,
+        lastMarkedColor = clone( a_markColor );
     while(maxTimes--) {
         var s = new Array() ,
             maxCount = 0;
@@ -184,6 +226,15 @@ function doKMeans(imageData, width, height, K) {
         }
 
         console.log("#" + maxTimes, s, a_markColor);
+
+        var sumDiff = 0;
+        for(i=0; i<K; i++) {
+            sumDiff += colorDiff( lastMarkedColor[i], a_markColor[i] );
+        }
+
+        if( sumDiff <= ( 2 * K ) ) break;
+
+        lastMarkedColor = clone( a_markColor );
 
     }
 
